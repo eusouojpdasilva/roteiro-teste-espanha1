@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Espanha — Cláudio & Lorena | Setembro 2026</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #C9A96E;
+    --gold-light: #E8D5A3;
+    --gold-dark: #9A7440;
+    --burgundy: #7B2D3E;
+    --cream: #F9F4EC;
+    --stone: #E8DFD0;
+    --ink: #1A1410;
+    --slate: #6B5E52;
+    --white: #FFFFFF;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    background: var(--ink);
+    color: var(--cream);
+    overflow: hidden;
+  }
+
+  .slides-container { position: fixed; inset: 0; overflow: hidden; }
+
+  .slide {
+    position: absolute; inset: 0;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.8s ease;
+    overflow-y: auto;
+  }
+  .slide.active { opacity: 1; pointer-events: all; }
+
+  /* ── NAV ── */
+  .nav {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 0.6rem; z-index: 1000; align-items: center;
+    background: rgba(26,20,16,0.82); backdrop-filter: blur(16px);
+    padding: 0.8rem 1.6rem; border-radius: 50px;
+    border: 1px solid rgba(201,169,110,0.25);
+  }
+  .nav-btn {
+    background: none; border: 1px solid rgba(201,169,110,0.4);
+    color: var(--gold); font-family: 'Montserrat', sans-serif;
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; padding: 0.55rem 1.2rem;
+    border-radius: 50px; cursor: pointer; transition: all 0.3s ease; white-space: nowrap;
+  }
+  .nav-btn:hover, .nav-btn.active-nav { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+  .nav-arrow {
+    background: none; border: none; color: var(--gold);
+    font-size: 1.3rem; cursor: pointer; padding: 0.25rem 0.5rem;
+    transition: color 0.3s; line-height: 1;
+  }
+  .nav-arrow:hover { color: var(--gold-light); }
+
+  /* ── CAPA ── */
+  .slide-capa { position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .capa-bg { position: absolute; inset: 0; background-image: url('https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=1600&q=85'); background-size: cover; background-position: center; }
+  .capa-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(26,20,16,0.85) 0%, rgba(123,45,62,0.4) 50%, rgba(26,20,16,0.9) 100%); }
+  .capa-content { position: relative; text-align: center; padding: 3rem 2rem; max-width: 820px; }
+  .capa-eyebrow { font-family: 'Montserrat', sans-serif; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.32em; text-transform: uppercase; color: var(--gold); margin-bottom: 2rem; }
+  .capa-title { font-family: 'Playfair Display', serif; font-size: clamp(4rem, 9vw, 7.5rem); font-weight: 400; line-height: 1; color: var(--white); margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+  .capa-subtitle { font-family: 'Playfair Display', serif; font-size: clamp(1.3rem, 3vw, 2.1rem); font-weight: 400; font-style: italic; color: var(--gold-light); margin-bottom: 2.5rem; }
+  .capa-divider { width: 80px; height: 1px; background: var(--gold); margin: 0 auto 2rem; opacity: 0.6; }
+  .capa-names { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4.5vw, 3.5rem); font-weight: 600; color: var(--white); margin-bottom: 1rem; }
+  .capa-dates { font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 300; letter-spacing: 0.22em; color: var(--gold-light); margin-bottom: 2rem; }
+  .capa-route { display: flex; align-items: center; justify-content: center; gap: 0.8rem; font-family: 'Montserrat', sans-serif; font-size: 0.75rem; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--stone); flex-wrap: wrap; }
+  .route-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+
+  /* ── DESTINO HERO ── */
+  .slide-destino { min-height: 100vh; padding-bottom: 8rem; }
+  .destino-hero { position: relative; height: 62vh; min-height: 440px; overflow: hidden; }
+  .destino-hero img { width: 100%; height: 100%; object-fit: cover; }
+  .destino-hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(26,20,16,0.1) 0%, rgba(26,20,16,0.96) 100%); }
+  .destino-hero-content {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 3rem 2rem 2.5rem;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .destino-numero { font-family: 'Montserrat', sans-serif; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.32em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.7rem; }
+  .destino-nome { font-family: 'Playfair Display', serif; font-size: clamp(3rem, 7.5vw, 6rem); font-weight: 400; line-height: 1; color: var(--white); margin-bottom: 1rem; letter-spacing: -0.01em; }
+  .destino-datas { font-family: 'Montserrat', sans-serif; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.7rem; }
+  .destino-datas-sep { width: 28px; height: 1px; background: var(--gold); opacity: 0.5; display: inline-block; }
+  .destino-tagline { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.1rem, 2.2vw, 1.4rem); font-style: italic; font-weight: 300; color: rgba(232,223,208,0.82); max-width: 580px; line-height: 1.5; }
+
+  /* ── BODY GERAL ── */
+  .destino-body { padding: 3.5rem 3.5rem 2.5rem; max-width: 1140px; margin: 0 auto; }
+
+  .section-label {
+    font-family: 'Montserrat', sans-serif; font-size: 0.65rem; font-weight: 600;
+    letter-spacing: 0.32em; text-transform: uppercase; color: var(--gold);
+    margin-bottom: 1.75rem; padding-bottom: 0.85rem;
+    border-bottom: 1px solid rgba(201,169,110,0.22);
+  }
+
+  .mini-guia-intro {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.2rem, 1.8vw, 1.5rem);
+    font-weight: 300; line-height: 1.85; color: var(--stone); margin-bottom: 2.5rem;
+  }
+
+  .guia-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+  .guia-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(201,169,110,0.15); border-radius: 6px; padding: 1.75rem; }
+  .guia-card-title { font-family: 'Montserrat', sans-serif; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.85rem; }
+  .guia-card-text { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 300; line-height: 1.75; color: var(--stone); }
+
+  /* ── HOTEL ── */
+  .hotel-section { margin-bottom: 3rem; }
+  .hotel-card {
+    display: flex; align-items: flex-start; gap: 1.5rem;
+    background: rgba(201,169,110,0.07); border: 1px solid rgba(201,169,110,0.22);
+    border-radius: 6px; padding: 1.5rem 1.75rem;
+  }
+  .hotel-icon { font-size: 1.8rem; opacity: 0.75; flex-shrink: 0; margin-top: 0.15rem; }
+  .hotel-label { font-family: 'Montserrat', sans-serif; font-size: 0.58rem; font-weight: 600; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold-dark); margin-bottom: 0.4rem; }
+  .hotel-nome { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 600; color: var(--white); margin-bottom: 0.35rem; }
+  .hotel-detalhe { font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-weight: 300; font-style: italic; color: var(--gold-light); margin-bottom: 0.6rem; line-height: 1.5; }
+  .hotel-checkin {
+    display: flex; gap: 1.5rem; margin-top: 0.75rem; flex-wrap: wrap;
+  }
+  .hotel-checkin-item {}
+  .hotel-checkin-label { font-family: 'Montserrat', sans-serif; font-size: 0.55rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--slate); margin-bottom: 0.2rem; }
+  .hotel-checkin-value { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 600; color: var(--gold-light); }
+
+  /* ── MAPA ── */
+  .mapa-section { margin-bottom: 3rem; }
+  .mapa-container { height: 380px; border-radius: 6px; overflow: hidden; border: 1px solid rgba(201,169,110,0.22); }
+
+  /* popup Leaflet customizado */
+  .leaflet-popup-content-wrapper {
+    background: #1A1410 !important; border: 1px solid rgba(201,169,110,0.4) !important;
+    border-radius: 6px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+    padding: 0 !important;
+  }
+  .leaflet-popup-content { margin: 10px 14px !important; }
+  .leaflet-popup-tip { background: #1A1410 !important; }
+  .leaflet-popup-close-button { color: var(--gold) !important; font-size: 16px !important; }
+
+  /* ── ACCORDION ── */
+  .accordion-section { margin-bottom: 3rem; }
+  .accordion-item { border-bottom: 1px solid rgba(201,169,110,0.15); }
+  .accordion-header {
+    width: 100%; background: none; border: none;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.4rem 0; cursor: pointer; text-align: left;
+  }
+  .accordion-day { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 600; color: var(--white); }
+  .accordion-day span { font-weight: 400; font-style: italic; color: var(--gold-light); font-size: 1.05rem; margin-left: 0.5rem; }
+  .accordion-icon { color: var(--gold); font-size: 1.3rem; transition: transform 0.3s; flex-shrink: 0; line-height: 1; }
+  .accordion-item.open .accordion-icon { transform: rotate(45deg); }
+  .accordion-body { display: none; padding: 0 0 1.75rem; }
+  .accordion-item.open .accordion-body { display: block; }
+
+  .periodo { margin-bottom: 1.4rem; }
+  .periodo-label { font-family: 'Montserrat', sans-serif; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.55rem; }
+  .periodo-text { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 300; line-height: 1.8; color: var(--stone); }
+
+  .dica-extra { background: rgba(201,169,110,0.08); border-left: 2px solid var(--gold); padding: 0.85rem 1.1rem; margin-top: 0.5rem; border-radius: 0 6px 6px 0; }
+  .dica-extra .periodo-label { color: var(--gold-dark); }
+  .dica-extra .periodo-text { color: var(--gold-light); font-style: italic; }
+
+  /* ── GALERIA ── */
+  .galeria { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.85rem; margin-bottom: 3rem; }
+  .galeria-item { position: relative; overflow: hidden; border-radius: 6px; aspect-ratio: 4/3; }
+  .galeria-item img { width: 100%; height: 100%; object-fit: cover; opacity: 0.82; transition: opacity 0.3s, transform 0.4s; display: block; }
+  .galeria-item:hover img { opacity: 1; transform: scale(1.04); }
+  .galeria-caption {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, rgba(26,20,16,0.85) 0%, transparent 100%);
+    padding: 1.5rem 0.9rem 0.7rem;
+    font-family: 'Montserrat', sans-serif; font-size: 0.58rem; font-weight: 600;
+    letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold-light);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .galeria-item:hover .galeria-caption { opacity: 1; }
+
+  /* ── FINAL ── */
+  .slide-final { min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; }
+  .final-bg { position: absolute; inset: 0; background-image: url('https://images.unsplash.com/photo-1543783207-ec64e4d95325?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); background-size: cover; background-position: center; }
+  .final-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(26,20,16,0.7) 0%, rgba(26,20,16,0.93) 100%); }
+  .final-content { position: relative; max-width: 760px; padding: 3rem 2rem 8rem; text-align: center; }
+  .final-eyebrow { font-family: 'Montserrat', sans-serif; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 1.5rem; }
+  .final-title { font-family: 'Playfair Display', serif; font-size: clamp(2.2rem, 5vw, 3.75rem); font-weight: 400; font-style: italic; color: var(--white); line-height: 1.2; margin-bottom: 2.5rem; }
+  .checklist { background: rgba(255,255,255,0.04); border: 1px solid rgba(201,169,110,0.2); border-radius: 6px; padding: 2.25rem; margin-bottom: 2.25rem; text-align: left; }
+  .checklist-title { font-family: 'Montserrat', sans-serif; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); margin-bottom: 1.5rem; }
+  .checklist ul { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .checklist li { font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-weight: 300; color: var(--stone); display: flex; align-items: flex-start; gap: 0.6rem; line-height: 1.55; }
+  .checklist li::before { content: '◇'; color: var(--gold); font-size: 0.65rem; margin-top: 0.35rem; flex-shrink: 0; }
+  .final-frase { font-family: 'Playfair Display', serif; font-size: clamp(1.2rem, 2.5vw, 1.6rem); font-style: italic; font-weight: 400; color: var(--gold-light); line-height: 1.75; }
+  .final-assinatura { margin-top: 2rem; font-family: 'Montserrat', sans-serif; font-size: 0.62rem; font-weight: 400; letter-spacing: 0.2em; color: var(--slate); text-transform: uppercase; }
+
+  /* ══════════════════════════════════════
+     MOBILE FIRST — tudo pensado para celular
+  ══════════════════════════════════════ */
+  @media (max-width: 768px) {
+
+    /* CAPA */
+    .capa-content { padding: 2rem 1.25rem 7rem; }
+    .capa-eyebrow { font-size: 0.6rem; letter-spacing: 0.2em; margin-bottom: 1.25rem; }
+    .capa-dates { font-size: 0.68rem; letter-spacing: 0.12em; line-height: 1.6; }
+    .capa-route { font-size: 0.65rem; gap: 0.5rem; }
+
+    /* HERO DESTINO — menos alto no celular */
+    .destino-hero { height: 52vh; min-height: 320px; }
+    .destino-hero-content { padding: 1.5rem 1.25rem 2rem; }
+    .destino-numero { font-size: 0.55rem; letter-spacing: 0.2em; margin-bottom: 0.4rem; }
+    .destino-nome { font-size: clamp(2.5rem, 11vw, 3.5rem); margin-bottom: 0.6rem; }
+
+    /* DATAS EM COLUNA NO MOBILE */
+    .destino-datas {
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+    }
+    .destino-datas-sep { display: none; }
+    .destino-tagline { font-size: 1rem; }
+
+    /* BODY */
+    .destino-body { padding: 1.75rem 1.25rem 2rem; }
+    .section-label { font-size: 0.6rem; letter-spacing: 0.22em; margin-bottom: 1.25rem; padding-bottom: 0.65rem; }
+    .mini-guia-intro { font-size: 1.1rem; line-height: 1.75; margin-bottom: 2rem; }
+
+    /* CARDS MINI GUIA — coluna única */
+    .guia-grid { grid-template-columns: 1fr; gap: 1rem; margin-bottom: 2rem; }
+    .guia-card { padding: 1.25rem; }
+    .guia-card-text { font-size: 1.05rem; }
+
+    /* HOTEL */
+    .hotel-card { flex-direction: column; gap: 0.5rem; padding: 1.25rem; }
+    .hotel-icon { font-size: 1.5rem; }
+    .hotel-nome { font-size: 1.2rem; }
+    .hotel-detalhe { font-size: 1rem; }
+    .hotel-checkin { gap: 1rem; }
+    .hotel-checkin-value { font-size: 0.9rem; }
+
+    /* MAPA — altura reduzida no mobile */
+    .mapa-container { height: 260px; }
+
+    /* ACCORDION */
+    .accordion-header { padding: 1.1rem 0; }
+    .accordion-day { font-size: 1.05rem; }
+    .accordion-day span { font-size: 0.92rem; display: block; margin-left: 0; margin-top: 0.2rem; }
+    .periodo-label { font-size: 0.58rem; }
+    .periodo-text { font-size: 1.05rem; line-height: 1.75; }
+
+    /* GALERIA — 1 coluna no mobile, mais fácil de ver */
+    .galeria { grid-template-columns: 1fr; gap: 0.65rem; margin-bottom: 2rem; }
+    .galeria-item { aspect-ratio: 16/9; }
+    .galeria-caption { opacity: 1; font-size: 0.6rem; }
+
+    /* CHECKLIST */
+    .checklist { padding: 1.5rem; }
+    .checklist ul { grid-template-columns: 1fr; gap: 0.6rem; }
+    .checklist li { font-size: 1rem; }
+
+    /* FINAL */
+    .final-content { padding: 2rem 1.25rem 7rem; }
+    .final-title { font-size: clamp(1.8rem, 7vw, 2.5rem); margin-bottom: 1.75rem; }
+    .final-frase { font-size: 1.1rem; }
+
+    /* NAV — apenas setas + nome ativo, sem todos os botões */
+    .nav {
+      bottom: 1rem;
+      padding: 0.65rem 1rem;
+      gap: 0.5rem;
+      width: calc(100% - 2rem);
+      justify-content: space-between;
+    }
+    .nav-btn {
+      display: none; /* esconde os botões de texto */
+    }
+    .nav-btn.active-nav {
+      display: block; /* mostra só o destino ativo */
+      font-size: 0.62rem;
+      padding: 0.45rem 1rem;
+      pointer-events: none; /* só indicador, não clicável */
+    }
+    .nav-arrow {
+      font-size: 1.5rem;
+      padding: 0.4rem 0.6rem;
+      background: rgba(201,169,110,0.12);
+      border-radius: 50%;
+      border: 1px solid rgba(201,169,110,0.3);
+      min-width: 42px;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  /* Telas muito pequenas */
+  @media (max-width: 390px) {
+    .destino-hero { height: 48vh; min-height: 280px; }
+    .destino-nome { font-size: clamp(2.2rem, 12vw, 3rem); }
+    .capa-title { font-size: clamp(3rem, 14vw, 5rem); }
+  }
+</style>
+</head>
+<body>
+<div class="slides-container">
+
+<!-- ══════════════════════════════════════════
+     SLIDE 0 — CAPA
+══════════════════════════════════════════ -->
+<div class="slide active" id="slide-0">
+  <div class="slide-capa">
+    <div class="capa-bg"></div>
+    <div class="capa-overlay"></div>
+    <div class="capa-content">
+      <div class="capa-eyebrow">Roteiro de Lua de Mel</div>
+      <div class="capa-title">Espanha</div>
+      <div class="capa-subtitle">Uma viagem feita de memórias</div>
+      <div class="capa-divider"></div>
+      <div class="capa-names">Cláudio &amp; Lorena</div>
+      <div class="capa-dates">14 de setembro — 28 de setembro de 2026 &nbsp;·&nbsp; 15 dias</div>
+      <div class="capa-route">
+        <span>Rio de Janeiro</span><div class="route-dot"></div>
+        <span>Madrid</span><div class="route-dot"></div>
+        <span>Valencia</span><div class="route-dot"></div>
+        <span>Barcelona</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SLIDE 1 — MADRID
+══════════════════════════════════════════ -->
+<div class="slide" id="slide-1">
+  <div class="slide-destino">
+    <div class="destino-hero">
+      <img src="https://images.unsplash.com/photo-1539037116277-4db20889f2d4?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Madrid">
+      <div class="destino-hero-overlay"></div>
+      <div class="destino-hero-content">
+        <div class="destino-numero">Destino 01 de 03</div>
+        <div class="destino-nome">Madrid</div>
+        <div class="destino-datas">
+          <span>Chegada: 14 set</span><span class="destino-datas-sep"></span>
+          <span>Saída: 18 set</span><span class="destino-datas-sep"></span>
+          <span>5 noites</span>
+        </div>
+        <div class="destino-tagline">Onde a grandiosidade é cotidiana e cada praça guarda uma história</div>
+      </div>
+    </div>
+
+    <div class="destino-body">
+      <div class="section-label">Mini Guia</div>
+      <p class="mini-guia-intro">Madrid não se revela de uma vez. Ela se abre em camadas: primeiro a grandeza das avenidas e dos museus, depois a intimidade dos mercados e das tabernas, e por fim aquele ritmo particular que convida a ficar mais um pouco. Para Cláudio e Lorena, a capital espanhola será a porta de entrada para cinco dias de descobertas compartilhadas, onde a arte, a gastronomia e a vida noturna se encontram com naturalidade rara.</p>
+
+      <div class="guia-grid">
+        <div class="guia-card">
+          <div class="guia-card-title">Destaques Culturais</div>
+          <div class="guia-card-text">Triângulo de Ouro dos museus (Prado, Reina Sofía e Thyssen), Palácio Real, Templo de Debod ao pôr do sol, Plaza Mayor e a efervescente Puerta del Sol.</div>
+        </div>
+        <div class="guia-card">
+          <div class="guia-card-title">Bairros e Atmosferas</div>
+          <div class="guia-card-text">Malasaña para o boêmio e criativo, La Latina para tapas e tradição, Chueca para bares elegantes, Salamanca para boutiques de luxo e jantares refinados.</div>
+        </div>
+        <div class="guia-card">
+          <div class="guia-card-title">Gastronomia</div>
+          <div class="guia-card-text">Cocido madrileño, tortilla de patatas na taberna de sempre, gambas al ajillo, bocadillo de calamares na Plaza Mayor, e uma noite no Mercado de San Miguel.</div>
+        </div>
+        <div class="guia-card">
+          <div class="guia-card-title">Informações Práticas</div>
+          <div class="guia-card-text">Metro eficiente e acessível. Setembro é perfeito: calor ameno, sem multidões do verão. Almoço entre 14h e 16h, jantar após 21h. O Madrid Card vale para museus e transporte.</div>
+        </div>
+      </div>
+
+      <div class="hotel-section">
+        <div class="section-label">Hospedagem</div>
+        <div class="hotel-card">
+          <div class="hotel-icon">🏨</div>
+          <div class="hotel-info">
+            <div class="hotel-label">Hotel selecionado</div>
+            <div class="hotel-nome">Hotel Único Madrid</div>
+            <div class="hotel-detalhe">Bairro de Salamanca · Boutique 5 estrelas · Jardim privativo e restaurante com estrela Michelin</div>
+            <div class="hotel-checkin">
+              <div class="hotel-checkin-item">
+                <div class="hotel-checkin-label">Check-in</div>
+                <div class="hotel-checkin-value">14 de setembro de 2026</div>
+              </div>
+              <div class="hotel-checkin-item">
+                <div class="hotel-checkin-label">Check-out</div>
+                <div class="hotel-checkin-value">18 de setembro de 2026</div>
+              </div>
+              <div class="hotel-checkin-item">
+                <div class="hotel-checkin-label">Duração</div>
+                <div class="hotel-checkin-value">5 noites</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mapa-section">
+        <div class="section-label">Mapa</div>
+        <div class="mapa-container" id="mapa-madrid"></div>
+      </div>
+
+      <div class="accordion-section">
+        <div class="section-label">Roteiro Dia a Dia</div>
+
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div class="accordion-day">Dia 1 <span>Chegada e primeiro fôlego</span></div>
+            <div class="accordion-icon">+</div>
+          </button>
+          <div class="accordion-body">
+            <div class="periodo"><div class="periodo-label">Manhã</div><div class="periodo-text">Chegada ao Aeroporto Adolfo Suárez Madrid-Barajas. Check-in no Hotel Único Madrid, no coração de Salamanca. Descanso breve e banho para reorganizar o corpo após o voo noturno.</div></div>
+            <div class="periodo"><div class="periodo-label">Tarde</div><div class="periodo-text">Passeio leve pelo Parque del Retiro: bote no lago artificial, leitura nas alamedas, café no Pabellón de Cristal. A tarde é para se sentir chegados, não para cumprir roteiro.</div></div>
+            <div class="periodo"><div class="periodo-label">Noite</div><div class="periodo-text">Jantar na Plaza de Santa Ana, no coração do bairro literário. Uma boa mesa de tapas, vinho da Rioja e a Plaza iluminada como pano de fundo para o primeiro brinde em terra espanhola.</div></div>
+            <div class="dica-extra"><div class="periodo-label">Dica extra</div><div class="periodo-text">Reserve o quarto com vista para o jardim privativo do hotel. A qualidade do sono nos primeiros dias faz toda a diferença para o aproveitamento da viagem.</div></div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div class="accordion-day">Dia 2 <span>Os grandes museus</span></div>
+            <div class="accordion-icon">+</div>
+          </button>
+          <div class="accordion-body">
+            <div class="periodo"><div class="periodo-label">Manhã</div><div class="periodo-text">Museu do Prado logo na abertura às 10h, antes do movimento. Focar nas salas de Velázquez, Goya e El Greco. Duas horas com atenção são mais ricas do que quatro horas de fadiga.</div></div>
+            <div class="periodo"><div class="periodo-label">Tarde</div><div class="periodo-text">Almoço no Café del Prado. À tarde, Museu Thyssen-Bornemisza para uma visão da arte europeia do século XIV ao XX. A coleção impressionista é excepcional para uma tarde tranquila a dois.</div></div>
+            <div class="periodo"><div class="periodo-label">Noite</div><div class="periodo-text">Cervejaria Alemana na Plaza de Santa Ana, frequentada por Hemingway, para dar início à noite. Jantar no bairro de La Latina em alguma taberna antiga com vista para a rua.</div></div>
+            <div class="dica-extra"><div class="periodo-label">Dica extra</div><div class="periodo-text">O Prado oferece entrada gratuita a partir das 18h de segunda a sábado. Se a tarde ficar livre, vale retornar para ver as salas que ficaram para trás.</div></div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div class="accordion-day">Dia 3 <span>Palácio, mercado e a vida nos bairros</span></div>
+            <div class="accordion-icon">+</div>
+          </button>
+          <div class="accordion-body">
+            <div class="periodo"><div class="periodo-label">Manhã</div><div class="periodo-text">Visita ao Palácio Real de Madrid, uma das residências reais mais amplas da Europa. Logo ao lado, os Jardins de Sabatini para uma pausa tranquila antes do almoço.</div></div>
+            <div class="periodo"><div class="periodo-label">Tarde</div><div class="periodo-text">Mercado de San Miguel para petiscar com calma: ostras, presunto ibérico, croquetes e uma taça de cava. À tarde, explorar La Latina: ruas medievais, lojas de artesanato e a famosa Calle Cava Baja.</div></div>
+            <div class="periodo"><div class="periodo-label">Noite</div><div class="periodo-text">Jantar de gala no bairro de Salamanca. Um restaurante com estrela Michelin ou próximo disso, para celebrar com pratos da alta cozinha espanhola contemporânea.</div></div>
+            <div class="dica-extra"><div class="periodo-label">Dica extra</div><div class="periodo-text">A Plaza de la Villa, perto do Palácio Real, é pouco visitada e muito bela. Vale cinco minutos de desvio para fotografar a arquitetura dos séculos XV e XVII.</div></div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div class="accordion-day">Dia 4 <span>Arte contemporânea e pôr do sol egípcio</span></div>
+            <div class="accordion-icon">+</div>
+          </button>
+          <div class="accordion-body">
+            <div class="periodo"><div class="periodo-label">Manhã</div><div class="periodo-text">Museu Reina Sofía para ver o Guernica de Picasso e as obras de Dalí e Miró. A ala contemporânea é surpreendente e frequentemente ignorada pelos turistas apressados.</div></div>
+            <div class="periodo"><div class="periodo-label">Tarde</div><div class="periodo-text">Passeio pelo bairro de Malasaña: cafés de especialidade, livrarias independentes e a energia jovem e criativa que faz deste bairro um dos mais interessantes da Europa. Almoço em mesa ao ar livre.</div></div>
+            <div class="periodo"><div class="periodo-label">Noite</div><div class="periodo-text">Pôr do sol no Templo de Debod, o templo egípcio de 2.200 anos doado pela Egito à Espanha. A luz dourada sobre as pedras e o lago ao redor é uma das imagens mais bonitas de Madrid.</div></div>
+            <div class="dica-extra"><div class="periodo-label">Dica extra</div><div class="periodo-text">Chegue ao Templo de Debod com pelo menos uma hora de antecedência ao pôr do sol em setembro, por volta das 20h. Os melhores ângulos ficam do lado oeste do lago.</div></div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div class="accordion-day">Dia 5 <span>Dia livre e partida para Valencia</span></div>
+            <div class="accordion-icon">+</div>
+          </button>
+          <div class="accordion-body">
+            <div class="periodo"><div class="periodo-label">Manhã</div><div class="periodo-text">Manhã livre para o que ficou para trás: uma loja que chamou atenção, uma praça ainda não visitada, um café que merecia uma segunda visita. Madrid recompensa quem vaga sem destino fixo.</div></div>
+            <div class="periodo"><div class="periodo-label">Tarde</div><div class="periodo-text">Check-out, traslado para Estación de Atocha e embarque no AVE para Valencia. A viagem dura aproximadamente 1h40. Chegada e check-in no hotel.</div></div>
+            <div class="periodo"><div class="periodo-label">Noite</div><div class="periodo-text">Primeira noite em Valencia: jantar no bairro do Carmen com uma boa paella valenciana para abrir o ciclo na cidade que a inventou.</div></div>
+            <div class="dica-extra"><div class="periodo-label">Dica extra</div><div class="periodo-text">O AVE conecta Madrid Atocha a Valencia Joaquín Sorolla em múltiplos horários. O trem das 15h ou 16h dá tempo de chegar, descansar e ainda jantar com calma.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">Galeria</div>
+      <div class="galeria">
+        <div class="galeria-item"><img src="https://images.pexels.com/photos/36289642/pexels-photo-36289642.jpeg" alt="Madrid"><div class="galeria-caption">Madrid</div></div>
+        <div class="galeria-item"><img src="https://images.pexels.com/photos/14366474/pexels-photo-14366474.jpeg" alt="Madrid"><div class="galeria-caption">Madrid</div></div>
+        <div class="galeria-item"><img src="https://images.pexels.com/photos/37187351/pexels-photo-37187351.jpeg" alt="Madrid"><div class="galeria-caption">Madrid</div></div>
+        <div class="galeria-item"><img src="https://images.pexels.com/photos/32469373/pexels-photo-32469373.jpeg" alt="Madrid"><div class="galeria-caption">Madrid</div></div>
+        <div class="galeria-item"><img src="https://images.pexels.com/photos/14363700/pexels-photo-14363700.jpeg" alt="Madrid"><div class="galeria-caption">Madrid</div></div>
+        <div class="galeria-item"><img src="https://images.pexels.com/photos/11829297/pexels-photo-11829297.jpeg" alt="Madrid"><div class="galeria-caption">Madrid</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SLIDE 2 — VALENCIA
+══════════════════════════════════════════ -->
+<div class="slide" id="slide-2">
+  <div class="slide-destino">
+    <div class="destino-hero">
+      <img src="https://images.unsplash.com/photo-1630707099816-f089c0315e5d?q=80&w=1176&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Valencia">
+      <div class="destino-hero-overlay"></div>
+      <div class="destino-hero-content">
+        <div class="destino-numero">Destino 02 de 03</div>
+        <div class="destino-nome">Valencia</div>
+        <div class="destino-datas">
+          <span>Chegada: 18 set</span><span class="destino-datas-sep"></span>
+          <span>Saída: 22 set</span><span class="destino-datas-sep"></span>
+          <span>4 noites</span>
+        </div>
+        <div class="destino-tagline">Mar, laranjeiras e a paella mais honesta do mundo</div>
+      </div>
+    </div>
+
+    <div class="destino-body">
+      <div class="section-label">Mini Guia</div>
+      <p class="mini-guia-intro">Valencia tem o dom de não parecer turística mesmo quando está cheia de visitantes. Arquitetura futurista às margens do antigo leito do Rio Turia, praias urbanas acessíveis a pé, um mercado central que rivaliza com qualquer um da Europa e uma cultura gastronômica que vai muito além da paella. Quatro dias aqui é pouco para ver tudo e perfeito para sentir a essência.</p>
+
+      <div class="guia-grid">
+        <div class="guia-card"><div class="guia-card-title">Destaques Culturais</div><div class="guia-card-text">Cidade das Artes e das Ciências, Mercado Central, Catedral, bairro do Carmen e Lonja de la Seda, Patrimônio da Humanidade pela Unesco.</div></div>
+        <div class="guia-card"><div class="guia-card-title">Bairros e Atmosferas</div><div class="guia-card-text">El Carmen para arte de rua e bares pequenos, Ruzafa para cafés modernos e gastronomia criativa, La Malvarrosa para a praia e o ambiente descontraído de frente ao mar.</div></div>
+        <div class="guia-card"><div class="guia-card-title">Gastronomia</div><div class="guia-card-text">Paella valenciana legítima, fideuà, horchata com fartons na Horchatería Santa Catalina, boquerones em vinagre e os melhores pimentos assados do país.</div></div>
+        <div class="guia-card"><div class="guia-card-title">Informações Práticas</div><div class="guia-card-text">Cidade muito ciclável. Setembro é a melhor época: mar ainda quente, sem o calor de agosto. Transporte público cobre bem todas as zonas turísticas.</div></div>
+      </div>
+
+      <div class="hotel-section">
+        <div class="section-label">Hospedagem</div>
+        <div class="hotel-card">
+          <div class="hotel-icon">🏨</div>
+          <div class="hotel-info">
+            <div class="hotel-label">Hotel selecionado</div>
+            <div class="hotel-nome">Caro Hotel Valencia</div>
+            <div class="hotel-detalhe">Centro Histórico · Boutique 5 estrelas · Palácio do século XIV restaurado com piscina no terraço</div>
+            <div class="hotel-checkin">
+              <div class="hotel-checkin-item"><div class="hotel-checkin-label">Check-in</div><div class="hotel-checkin-value">18 de setembro de 2026</div></div>
+              <div class="hotel-checkin-item"><div class="hotel-checkin-label">Check-out</div><div class="hotel-checkin-value">22 de setembro de 2026</div></div>
+              <div class="hotel-checkin-item"><div class="hotel-checkin-label">Duração</div><div class="hotel-checkin-value">4 noites</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mapa-section">
+        <div class="section-label">Mapa</div>
+        <div class="mapa-container" id="mapa-valencia"></div>
+      </div>
+
+      <div class="accordion-section">
+        <div class="section-label">Roteiro Dia a Dia</div>
+
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div class="accordion-day">Dia 6 <span>A cidade antiga e a paella original</span></div>
+            <div class="accordion-icon">+</div>
+          </button>
+          <div class="accordion-body">
+            <div class="periodo"><div class="periodo-label">Manhã</div><div class="periodo-text">Visita ao Mercado Central de Valencia, um dos maiores mercados cobertos do mundo. Azulejos art nouveau, cúpulas de vidro e bancas com produtos frescos da horta valenciana.</div></div>
+            <div class="periodo"><div class="periodo-label">Tarde</div><div class="periodo-text">Almoço sagrado: paella valenciana autêntica num restaurante tradicional fora do circuito turístico, em Ruzafa ou La Malvarrosa. Depois, visita à Catedral e ao bairro gótico do Carmen.</div></div>
+            <div class="periodo"><div class="periodo-label">Noite</div><div class="periodo-text">Jantar no bairro de Ruzafa com cozinha criativa e ingredientes da horta valenciana. Vinhos da região de Utiel-Requena para acompanhar.</div></div>
+            <div class="dica-extra"><div class="periodo-label">Dica extra</div><div class="periodo-text">A paella valenciana verdadeira se come no almoço, nunca no jantar. Qualquer restaurante que a sirva à noite já é um sinal de alerta para turistas.</div></div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div class="accordion-day">Dia 7 <span>Futurismo e o antigo leito do rio</span></div>
+            <div class="accordion-icon">+</div>
+          </button>
+          <div class="accordion-body">
+            <div class="periodo"><div class="periodo-label">Manhã</div><div class="periodo-text">Cidade das Artes e das Ciências: o complexo arquitetônico de Calatrava é impressionante antes de ser equipamento cultural. O Hemisfèric e o Palau de les Arts Reina Sofia são obras de arte por fora.</div></div>
+            <div class="periodo"><div class="periodo-label">Tarde</div><div class="periodo-text">Passeio de bicicleta pelo Jardim do Turia, o parque linear de 9 quilômetros construído no antigo leito do Rio Turia após as enchentes de 1957. Um dos parques urbanos mais bonitos da Europa.</div></div>
+            <div class="periodo"><div class="periodo-label">Noite</div><div class="periodo-text">Horchata com fartons na Horchatería Santa Catalina, fundada em 1836. Depois, jantar leve no Carmen: tapas, queijos curados e uma garrafa de vinho para encerrar o dia sem pressa.</div></div>
+            <div class="dica-extra"><div class="periodo-label">Dica extra</div><div class="periodo-text">O aluguel de bicicletas no Jardim do Turia custa em torno de 10 euros por pessoa por duas horas. O ritmo do passeio muda completamente quando você está sobre duas rodas.</div></div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div class="accordion-day">Dia 8 <span>Dia de praia e desaceleração</span></div>
+            <div class="accordion-icon">+</div>
+          </button>
+          <div class="accordion-body">
+            <div class="periodo"><div class="periodo-label">Manhã</div><div class="periodo-text">Dia dedicado à Praia da Malvarrosa. Em setembro o mar ainda está quente e a praia está menos cheia que no verão. Guarda-sol, bronzeador, água do Mediterrâneo e nada mais no horizonte.</div></div>
+            <div class="periodo"><div class="periodo-label">Tarde</div><div class="periodo-text">Almoço num restaurante de frente para o mar com fideuà. Tarde livre na praia ou volta ao Caro Hotel para descanso na piscina do terraço com vista para o centro histórico.</div></div>
+            <div class="periodo"><div class="periodo-label">Noite</div><div class="periodo-text">Jantar romântico no bairro de Ruzafa com reserva antecipada. Ambiente intimista, luz baixa e cardápio de degustação para celebrar o meio da viagem.</div></div>
+            <div class="dica-extra"><div class="periodo-label">Dica extra</div><div class="periodo-text">Em setembro o pôr do sol em Valencia acontece por volta das 20h30. A praia ao entardecer, com o mar ainda quieto, é um dos momentos mais bonitos que a viagem vai oferecer.</div></div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div class="accordion-day">Dia 9 <span>Lonja, arte e partida para Barcelona</span></div>
+            <div class="accordion-icon">+</div>
+          </button>
+          <div class="accordion-body">
+            <div class="periodo"><div class="periodo-label">Manhã</div><div class="periodo-text">Visita à Lonja de la Seda, Patrimônio da Humanidade pela Unesco: um dos edifícios góticos civis mais bem preservados da Europa. Passeio final pelo Carmen para compras e despedida do bairro.</div></div>
+            <div class="periodo"><div class="periodo-label">Tarde</div><div class="periodo-text">Almoço leve, check-out e traslado para a Estación del Nord. AVE para Barcelona com chegada em cerca de 1h30. Check-in e primeira impressão da capital catalã.</div></div>
+            <div class="periodo"><div class="periodo-label">Noite</div><div class="periodo-text">Primeira noite em Barcelona com um bistrô catalão, vinho local e os primeiros pinhões torrados para abrir o apetite pelo que vem nos seis dias seguintes.</div></div>
+            <div class="dica-extra"><div class="periodo-label">Dica extra</div><div class="periodo-text">O trem de Valencia para Barcelona passa pela costa mediterrânea durante boa parte do trajeto. Sente do lado da janela direita no sentido da viagem para não perder o mar.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">Galeria</div>
+      <div class="galeria">
+        <div class="galeria-item"><img src="https://images.unsplash.com/photo-1725208179317-c5e56702816a?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Valencia"><div class="galeria-caption">Valencia</div></div>
+        <div class="galeria-item"><img src="https://images.unsplash.com/photo-1719401542194-95139aed215c?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Valencia"><div class="galeria-caption">Valencia</div></div>
+        <div class="galeria-item"><img src="https://images.unsplash.com/photo-1666861522569-3a352a533c1e?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Valencia"><div class="galeria-caption">Valencia</div></div>
+        <div class="galeria-item"><img src="https://images.unsplash.com/photo-1751834740962-9c41fe457858?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Valencia"><div class="galeria-caption">Valencia</div></div>
+        <div class="galeria-item"><img src="https://plus.unsplash.com/premium_photo-1697730297737-b21276ab6ef9?q=80&w=1169&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Valencia"><div class="galeria-caption">Valencia</div></div>
+        <div class="galeria-item"><img src="https://plus.unsplash.com/premium_photo-1702598911543-d0b97de0f791?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Valencia"><div class="galeria-caption">Valencia</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SLIDE 3 — BARCELONA
+══════════════════════════════════════════ -->
+<div class="slide" id="slide-3">
+  <div class="slide-destino">
+    <div class="destino-hero">
+      <img src="https://images.unsplash.com/photo-1583422409516-2895a77efded?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Barcelona">
+      <div class="destino-hero-overlay"></div>
+      <div class="destino-hero-content">
+        <div class="destino-numero">Destino 03 de 03</div>
+        <div class="destino-nome">Barcelona</div>
+        <div class="destino-datas">
+          <span>Chegada: 22 set</span><span class="destino-datas-sep"></span>
+          <span>Saída: 28 set</span><span class="destino-datas-sep"></span>
+          <span>6 noites</span>
+        </div>
+        <div class="destino-tagline">Gaudí, o Mediterrâneo e uma cidade que nunca para de surpreender</div>
+      </div>
+    </div>
+
+    <div class="destino-body">
+      <div class="section-label">Mini Guia</div>
+      <p class="mini-guia-intro">Barcelona é uma das poucas cidades do mundo que consegue ser ao mesmo tempo cosmopolita e profundamente local. A arquitetura de Gaudí domina o skyline, mas a verdadeira Barcelona está nos mercados, nos bares de vermute do sábado de manhã, nas praias do Barceloneta e nas ruas do Gràcia onde os moradores vivem como se o turismo não existisse. Seis dias aqui é tempo suficiente para ir fundo e terminar a lua de mel com a sensação de que esse lugar merece uma segunda visita.</p>
+
+      <div class="guia-grid">
+        <div class="guia-card"><div class="guia-card-title">Destaques Culturais</div><div class="guia-card-text">Sagrada Família, Park Güell, Casa Batlló, Palau de la Música Catalana, Museu Picasso, Fundació Joan Miró, Bairro Gótico e o MACBA.</div></div>
+        <div class="guia-card"><div class="guia-card-title">Bairros e Atmosferas</div><div class="guia-card-text">El Born para galerias e cocktail bars, Gràcia para vida local autêntica, Eixample para a arquitetura modernista, Barceloneta para a praia, El Raval para cultura e diversidade.</div></div>
+        <div class="guia-card"><div class="guia-card-title">Gastronomia</div><div class="guia-card-text">Pan con tomate, croquetes de bacalhau, vermute no La Pepita, mariscos frescos, cataplana catalã e uma noite num restaurante com estrela Michelin para encerrar em grande.</div></div>
+        <div class="guia-card"><div class="guia-card-title">Informações Práticas</div><div class="guia-card-text">Reserve Sagrada Família e Park Güell com antecedência. A T-Casual do metrô funciona para todas as zonas. Setembro é o melhor mês: menos gente, calor ideal e mar quente.</div></div>
+      </div>
+
+      <div class="hotel-section">
+        <div class="section-label">Hospedagem</div>
+        <div class="hotel-card">
+          <div class="hotel-icon">🏨</div>
+          <div class="hotel-info">
+            <div class="hotel-label">Hotel selecionado</div>
+            <div class="hotel-nome">Mandarin Oriental Barcelona</div>
+            <div class="hotel-detalhe">Passeig de Gràcia · Luxo 5 estrelas · Spa, piscina no terraço e vista direta para as fachadas modernistas</div>
+            <div class="hotel-checkin">
+              <div class="hotel-checkin-item"><div class="hotel-checkin-label">Check-in</div><div class="hotel-checkin-value">22 de setembro de 2026</div></div>
+              <div class="hotel-checkin-item"><div class="hotel-checkin-label">Check-out</div><div class="hotel-checkin-value">28 de setembro de 2026</div></div>
+              <div class="hotel-checkin-item"><div class="hotel-checkin-label">Duração</div><div class="hotel-checkin-value">6 noites</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mapa-section">
+        <div class="section-label">Mapa</div>
+        <div class="mapa-container" id="mapa-barcelona"></div>
+      </div>
+
+      <div class="accordion-section">
+        <div class="section-label">Roteiro Dia a Dia</div>
+
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div class="accordion-day">Dia 10 <span>Chegada e o bairro antigo</span></div>
+            <div class="accordion-icon">+</div>
+          </button>
+          <div class="accordion-body">
+            <div class="periodo"><div class="periodo-label">Manhã</div><div class="periodo-text">Chegada e check-in no Mandarin Oriental. Passeio de orientação pela Las Ramblas até o monumento a Colombo. Café da manhã num bar local com croissant de manteiga e zumo de naranja.</div></div>
+            <div class="periodo"><div class="periodo-label">Tarde</div><div class="periodo-text">Exploração do Bairro Gótico: a Catedral de Barcelona, a Plaça de Sant Jaume e as ruelas medievais que guardam dois mil anos de história. Almoço em taberna escondida nas vielas.</div></div>
+            <div class="periodo"><div class="periodo-label">Noite</div><div class="periodo-text">Jantar no bairro de El Born, o mais elegante para gastronomia e cocktails. Uma noite descontraída para sentir o ritmo de Barcelona antes dos dias mais intensos.</div></div>
+            <div class="dica-extra"><div class="periodo-label">Dica extra</div><div class="periodo-text">O Bairro Gótico guarda restos de muralha romana ainda visíveis a nível da rua. Procure a Plaça de Ramon Berenguer, onde a parede romana está integrada ao tecido urbano medieval.</div></div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div class="accordion-day">Dia 11 <span>Sagrada Família e o Eixample</span></div>
+            <div class="accordion-icon">+</div>
+          </button>
+          <div class="accordion-body">
+            <div class="periodo"><div class="periodo-label">Manhã</div><div class="periodo-text">Visita à Sagrada Família com reserva para o horário da manhã, quando a luz entra pelas vitrais do lado nascente e pinta o interior de azul e verde. Uma das experiências arquitetônicas mais emocionantes que existem.</div></div>
+            <div class="periodo"><div class="periodo-label">Tarde</div><div class="periodo-text">Passeio pelo Eixample: Passeig de Gràcia, Casa Batlló, Casa Milà e a famosa Manzana de la Discordia com três obras de mestres diferentes numa mesma quadra.</div></div>
+            <div class="periodo"><div class="periodo-label">Noite</div><div class="periodo-text">Jantar no Eixample com cozinha catalã contemporânea. O bairro tem algumas das melhores mesas da cidade fora do circuito mais badalado.</div></div>
+            <div class="dica-extra"><div class="periodo-label">Dica extra</div><div class="periodo-text">A Sagrada Família foi projetada para ser vista de dentro para fora. Reserve pelo menos duas horas: a fachada da Natividade e a da Paixão contam histórias completamente diferentes.</div></div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div class="accordion-day">Dia 12 <span>Park Güell e o bairro de Gràcia</span></div>
+            <div class="accordion-icon">+</div>
+          </button>
+          <div class="accordion-body">
+            <div class="periodo"><div class="periodo-label">Manhã</div><div class="periodo-text">Park Güell com reserva para o horário da manhã. O terraço com mosaicos coloridos e a vista panorâmica sobre Barcelona são o ponto alto. Quantidade de visitas diárias limitada, reserva obrigatória.</div></div>
+            <div class="periodo"><div class="periodo-label">Tarde</div><div class="periodo-text">Descida a pé até o bairro de Gràcia, o mais local de todos. Praças com cadeiras onde os moradores se sentam à tarde, mercado de l'Abaceria, cafés independentes e livrarias.</div></div>
+            <div class="periodo"><div class="periodo-label">Noite</div><div class="periodo-text">Vermute no fim da tarde na Plaça del Sol em Gràcia. Jantar no mesmo bairro, em algum restaurante pequeno e sem pressa.</div></div>
+            <div class="dica-extra"><div class="periodo-label">Dica extra</div><div class="periodo-text">Gràcia tem a melhor relação qualidade-preço de toda Barcelona para gastronomia. Os restaurantes aqui atendem moradores, não turistas, e isso faz toda a diferença.</div></div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div class="accordion-day">Dia 13 <span>Praia, mercado e El Born</span></div>
+            <div class="accordion-icon">+</div>
+          </button>
+          <div class="accordion-body">
+            <div class="periodo"><div class="periodo-label">Manhã</div><div class="periodo-text">Praia de Barceloneta pela manhã, antes do movimento. Setembro é o mês ideal: sol firme, mar quente e a praia sem a lotação do verão. Mergulho, leitura e café com vista para o Mediterrâneo.</div></div>
+            <div class="periodo"><div class="periodo-label">Tarde</div><div class="periodo-text">Mercado de Santa Catarina, alternativa menos turística à Boqueria, com o teto multicolorido de Miralles. Tarde no bairro de El Born: Museu Picasso e ruas de galerias e concept stores.</div></div>
+            <div class="periodo"><div class="periodo-label">Noite</div><div class="periodo-text">Cocktails no El Born e jantar no Barceloneta com mariscos frescos. Uma noite com o ruído do mar como trilha sonora.</div></div>
+            <div class="dica-extra"><div class="periodo-label">Dica extra</div><div class="periodo-text">O Museu Picasso tem entrada gratuita às quintas-feiras a partir das 18h. Se o roteiro permitir, aproveite para entrar sem custo e com menos movimento.</div></div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div class="accordion-day">Dia 14 <span>Montjuïc e a última noite</span></div>
+            <div class="accordion-icon">+</div>
+          </button>
+          <div class="accordion-body">
+            <div class="periodo"><div class="periodo-label">Manhã</div><div class="periodo-text">Montjuïc de teleférico: o Castelo com vista de 360 graus sobre a cidade e o mar, os Jardins de Laribal e a Fundació Joan Miró com uma das maiores coleções do artista catalão.</div></div>
+            <div class="periodo"><div class="periodo-label">Tarde</div><div class="periodo-text">Tarde livre para compras, revisitar um lugar favorito ou sentar num café do Eixample e deixar Barcelona passar. O penúltimo dia de uma lua de mel merece ser vivido no ritmo que surgir.</div></div>
+            <div class="periodo"><div class="periodo-label">Noite</div><div class="periodo-text">Jantar de encerramento num restaurante de destaque: o Disfrutar ou outra mesa com experiência de degustação para encerrar a viagem com uma refeição memorável.</div></div>
+            <div class="dica-extra"><div class="periodo-label">Dica extra</div><div class="periodo-text">Reserve o jantar de encerramento com pelo menos três meses de antecedência se a opção for algum restaurante estrelado. As mesas mais desejadas de Barcelona esgotam com rapidez.</div></div>
+          </div>
+        </div>
+
+        <div class="accordion-item">
+          <button class="accordion-header" onclick="toggleAccordion(this)">
+            <div class="accordion-day">Dia 15 <span>Despedida e voo de volta</span></div>
+            <div class="accordion-icon">+</div>
+          </button>
+          <div class="accordion-body">
+            <div class="periodo"><div class="periodo-label">Manhã</div><div class="periodo-text">Café da manhã demorado, último passeio a pé pelo Eixample ou pelo Born. Check-out com calma. O Aeroporto El Prat fica a 20 minutos do centro por metrô ou táxi.</div></div>
+            <div class="periodo"><div class="periodo-label">Tarde e Noite</div><div class="periodo-text">Embarque no voo BCN — GIG. O cruzeiro de volta é longo, mas cada hora é uma memória a mais da Espanha sendo guardada. Quinze dias, três cidades, uma história que começa aqui.</div></div>
+            <div class="dica-extra"><div class="periodo-label">Dica extra</div><div class="periodo-text">Leve o último café com leite espanhol dentro do aeroporto, antes do embarque. Esse é o tipo de gesto simples que transforma uma partida numa despedida de verdade.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">Galeria</div>
+      <div class="galeria">
+        <div class="galeria-item"><img src="https://images.unsplash.com/photo-1593368858664-a7fe556ab936?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Barcelona"><div class="galeria-caption">Barcelona</div></div>
+        <div class="galeria-item"><img src="https://images.unsplash.com/photo-1529551739587-e242c564f727?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Barcelona"><div class="galeria-caption">Barcelona</div></div>
+        <div class="galeria-item"><img src="https://images.unsplash.com/photo-1595954421407-ad5e012b25e5?q=80&w=1333&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Barcelona"><div class="galeria-caption">Barcelona</div></div>
+        <div class="galeria-item"><img src="https://images.unsplash.com/photo-1667983090922-3a996b026a26?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Barcelona"><div class="galeria-caption">Barcelona</div></div>
+        <div class="galeria-item"><img src="https://images.unsplash.com/photo-1650964827770-421afa7960ac?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Barcelona"><div class="galeria-caption">Barcelona</div></div>
+        <div class="galeria-item"><img src="https://images.unsplash.com/photo-1529068726703-d4dfa1c99b99?q=80&w=1169&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Barcelona"><div class="galeria-caption">Barcelona</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SLIDE 4 — ENCERRAMENTO
+══════════════════════════════════════════ -->
+<div class="slide" id="slide-4">
+  <div class="slide-final">
+    <div class="final-bg"></div>
+    <div class="final-overlay"></div>
+    <div class="final-content">
+      <div class="final-eyebrow">Até breve, Espanha</div>
+      <div class="final-title">Quinze dias. Três cidades.<br>Uma vida inteira de memórias.</div>
+      <div class="checklist">
+        <div class="checklist-title">Checklist da Viagem</div>
+        <ul>
+          <li>Passaportes com validade mínima de 6 meses</li>
+          <li>Reservas de hotel confirmadas nos 3 destinos</li>
+          <li>Ingressos Sagrada Família e Park Güell reservados</li>
+          <li>AVE Madrid → Valencia e Valencia → Barcelona</li>
+          <li>Seguro viagem internacional contratado</li>
+          <li>Adaptador para tomadas tipo F (europeu)</li>
+          <li>Cartão de crédito sem taxa de câmbio</li>
+          <li>Jantar de encerramento em Barcelona reservado</li>
+          <li>Aplicativo de transporte local (Cabify)</li>
+          <li>Euros em espécie para mercados e tabernas</li>
+        </ul>
+      </div>
+      <div class="final-frase">
+        Toda grande viagem começa como um roteiro<br>e termina como uma história.<br>
+        Que a de Cláudio e Lorena seja contada por muito tempo.
+      </div>
+
+      <div style="margin-top: 3rem; padding-top: 2.5rem; border-top: 1px solid rgba(201,169,110,0.2);">
+        <img src="https://i.postimg.cc/W4T7ffrW/Chat-GPT-Image-13-de-jun-de-2026-11-06-03.png"
+          alt="Miraterra Viagens"
+          style="width: 120px; height: 120px; object-fit: contain; margin-bottom: 1.5rem; opacity: 0.95;">
+        <div style="font-family:'Playfair Display',serif; font-size:clamp(1rem,2vw,1.25rem); font-weight:400; font-style:italic; color:var(--stone); line-height:1.8; margin-bottom:1rem;">
+          Foi uma honra planejar cada detalhe dessa jornada com você.<br>
+          Que a Espanha seja apenas o primeiro capítulo de muitas histórias juntos.
+        </div>
+        <div style="font-family:'Montserrat',sans-serif; font-size:0.68rem; font-weight:600; letter-spacing:0.25em; text-transform:uppercase; color:var(--gold);">
+          Miraterra Viagens
+        </div>
+        <div style="font-family:'Montserrat',sans-serif; font-size:0.6rem; font-weight:300; letter-spacing:0.15em; color:var(--slate); margin-top:0.3rem;">
+          Viagens que ficam na memória
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /slides-container -->
+
+<!-- NAVEGAÇÃO -->
+<nav class="nav">
+  <button class="nav-arrow" onclick="changeSlide(-1)">&#8592;</button>
+  <button class="nav-btn active-nav" onclick="goToSlide(0)">Capa</button>
+  <button class="nav-btn" onclick="goToSlide(1)">Madrid</button>
+  <button class="nav-btn" onclick="goToSlide(2)">Valencia</button>
+  <button class="nav-btn" onclick="goToSlide(3)">Barcelona</button>
+  <button class="nav-btn" onclick="goToSlide(4)">Encerramento</button>
+  <button class="nav-arrow" onclick="changeSlide(1)">&#8594;</button>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+  let currentSlide = 0;
+  const totalSlides = 5;
+  const mapsInitialized = {};
+
+  // ── CONFIG DOS MAPAS ──────────────────────────────
+  const mapConfigs = {
+    'mapa-madrid': {
+      center: [40.4168, -3.7038], zoom: 13,
+      markers: [
+        { coords: [40.4138, -3.6922], label: 'Museu do Prado', type: 'poi' },
+        { coords: [40.4168, -3.7038], label: 'Puerta del Sol', type: 'poi' },
+        { coords: [40.4236, -3.7128], label: 'Palácio Real', type: 'poi' },
+        { coords: [40.4230, -3.7174], label: 'Templo de Debod', type: 'poi' },
+        { coords: [40.4152, -3.6934], label: 'Parque del Retiro', type: 'poi' },
+        { coords: [40.4160, -3.7074], label: 'Plaza Mayor', type: 'poi' },
+        { coords: [40.4264, -3.6876], label: 'Hotel Único Madrid', type: 'hotel' },
+      ]
+    },
+    'mapa-valencia': {
+      center: [39.4699, -0.3763], zoom: 13,
+      markers: [
+        { coords: [39.4699, -0.3763], label: 'Plaza del Ayuntamiento', type: 'poi' },
+        { coords: [39.4736, -0.3790], label: 'Mercado Central', type: 'poi' },
+        { coords: [39.4541, -0.3554], label: 'Cidade das Artes e Ciências', type: 'poi' },
+        { coords: [39.4748, -0.3782], label: 'Catedral de Valencia', type: 'poi' },
+        { coords: [39.4635, -0.3218], label: 'Praia de Malvarrosa', type: 'poi' },
+        { coords: [39.4748, -0.3750], label: 'Caro Hotel Valencia', type: 'hotel' },
+      ]
+    },
+    'mapa-barcelona': {
+      center: [41.3921, 2.1634], zoom: 13,
+      markers: [
+        { coords: [41.4036, 2.1744], label: 'Sagrada Família', type: 'poi' },
+        { coords: [41.4145, 2.1527], label: 'Park Güell', type: 'poi' },
+        { coords: [41.3917, 2.1649], label: 'Casa Batlló', type: 'poi' },
+        { coords: [41.3795, 2.1741], label: 'Las Ramblas', type: 'poi' },
+        { coords: [41.3801, 2.1891], label: 'Praia de Barceloneta', type: 'poi' },
+        { coords: [41.3842, 2.1812], label: 'Bairro Gótico', type: 'poi' },
+        { coords: [41.3698, 2.1528], label: 'Montjuïc', type: 'poi' },
+        { coords: [41.3915, 2.1651], label: 'Mandarin Oriental', type: 'hotel' },
+      ]
+    }
+  };
+
+  function makeIcon(type) {
+    if (type === 'hotel') {
+      return L.divIcon({
+        html: `<div style="
+          width:18px;height:18px;
+          background:#C9A96E;
+          border-radius:50%;
+          border:3px solid #fff;
+          box-shadow:0 2px 10px rgba(0,0,0,0.5);
+          position:relative;
+        "></div>`,
+        className: '', iconSize: [18,18], iconAnchor: [9,9]
+      });
+    }
+    return L.divIcon({
+      html: `<div style="
+        width:14px;height:14px;
+        background:#7B2D3E;
+        border-radius:50%;
+        border:2.5px solid #fff;
+        box-shadow:0 2px 8px rgba(0,0,0,0.45);
+      "></div>`,
+      className: '', iconSize: [14,14], iconAnchor: [7,7]
+    });
+  }
+
+  function initMap(containerId) {
+    if (mapsInitialized[containerId]) return;
+    const config = mapConfigs[containerId];
+    if (!config || !document.getElementById(containerId)) return;
+
+    const map = L.map(containerId, { zoomControl: true }).setView(config.center, config.zoom);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap © CARTO',
+      subdomains: 'abcd', maxZoom: 19
+    }).addTo(map);
+
+    config.markers.forEach(m => {
+      const isHotel = m.type === 'hotel';
+      const popupHtml = `
+        <div style="font-family:'Montserrat',sans-serif;padding:2px 0;">
+          <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+            color:${isHotel ? '#C9A96E' : '#7B2D3E'};margin-bottom:3px;">
+            ${isHotel ? '🏨 Hospedagem' : '📍 Ponto do roteiro'}
+          </div>
+          <div style="font-size:13px;font-weight:600;color:#F9F4EC;line-height:1.3;">${m.label}</div>
+        </div>`;
+      L.marker(m.coords, { icon: makeIcon(m.type) }).addTo(map)
+        .bindPopup(popupHtml, { maxWidth: 200 });
+    });
+
+    // legenda simples
+    const legend = L.control({ position: 'bottomright' });
+    legend.onAdd = () => {
+      const div = L.DomUtil.create('div');
+      div.innerHTML = `
+        <div style="background:rgba(26,20,16,0.88);border:1px solid rgba(201,169,110,0.3);
+          border-radius:6px;padding:8px 12px;font-family:'Montserrat',sans-serif;font-size:10px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;color:#E8DFD0;">
+            <div style="width:12px;height:12px;background:#7B2D3E;border-radius:50%;border:2px solid #fff;flex-shrink:0;"></div>
+            Pontos do roteiro
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;color:#C9A96E;">
+            <div style="width:12px;height:12px;background:#C9A96E;border-radius:50%;border:2px solid #fff;flex-shrink:0;"></div>
+            Hotel
+          </div>
+        </div>`;
+      return div;
+    };
+    legend.addTo(map);
+
+    mapsInitialized[containerId] = true;
+    setTimeout(() => map.invalidateSize(), 300);
+  }
+
+  // ── NAVEGAÇÃO ────────────────────────────────────
+  function goToSlide(index) {
+    document.querySelectorAll('.slide')[currentSlide].classList.remove('active');
+    document.querySelectorAll('.nav-btn')[currentSlide].classList.remove('active-nav');
+    currentSlide = index;
+    const slide = document.querySelectorAll('.slide')[currentSlide];
+    slide.classList.add('active');
+    document.querySelectorAll('.nav-btn')[currentSlide].classList.add('active-nav');
+    slide.scrollTop = 0;
+    if (index === 1) initMap('mapa-madrid');
+    if (index === 2) initMap('mapa-valencia');
+    if (index === 3) initMap('mapa-barcelona');
+  }
+
+  function changeSlide(dir) {
+    let next = currentSlide + dir;
+    if (next < 0) next = totalSlides - 1;
+    if (next >= totalSlides) next = 0;
+    goToSlide(next);
+  }
+
+  function toggleAccordion(btn) {
+    btn.parentElement.classList.toggle('open');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') changeSlide(1);
+    if (e.key === 'ArrowLeft') changeSlide(-1);
+  });
+
+  // ── SWIPE TOUCH ──────────────────────────────────
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  document.addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    // só dispara swipe horizontal se o movimento for predominantemente lateral
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      if (dx < 0) changeSlide(1);  // swipe esquerda = próximo
+      else changeSlide(-1);         // swipe direita = anterior
+    }
+  }, { passive: true });
+</script>
+</body>
+</html>
